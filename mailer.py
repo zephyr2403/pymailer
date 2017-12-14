@@ -7,8 +7,8 @@ import inspect as iz
 import os
 import random
 
-ser = -2
-def change_text(text,ftext,iclr,fclr,spd):
+#ser = -2
+def change_text(root,shw,text,ftext,iclr,fclr,spd):
     shw.config(text=text,fg=iclr);
     root.update()
     time.sleep(spd)
@@ -28,36 +28,38 @@ def animate(start,end,xrat,yrat,spd,root):
         root.update()
         time.sleep(spd)
 
-def cont_server(smtpname,user,pswd):
-    flag = 0
-    k=0
+def cont_server(root,shw,user,pswd,ser):
+    global conn
+    if(ser==1):
+        smtpname="smtp.gmail.com"
+    elif(ser==2):
+        smtpname="smtp.mail.yahoo.com"
+    else:
+        smtpname="smtp-mail.outlook.com"
     try:
-        change_text("Connecting.","Connecting..","#00cccc","#00cccc",2)
-        global conn
+        change_text(root,shw,"Connecting.","Connecting..","#00cccc","#00cccc",1)
         conn=smtplib.SMTP(str(smtpname),587)
-        change_text("Connecting...","Connected","#00cccc","#66cc00",2)
+        change_text(root,shw,"Connecting...","Connected","#00cccc","#66cc00",1)
         conn.ehlo()
-        change_text("Connected","Starting Encrption Before Logging in","#66cc00","#00cccc",2)
+        change_text(root,shw,"Connected","Starting Encrption Before Logging in","#66cc00","#00cccc",1)
         conn.starttls()
-        change_text("Successfully Encrpted","Logging In..","#66cc00","#00cccc",2)
+        change_text(root,shw,"Successfully Encrpted","Logging In..","#66cc00","#00cccc",1)
+        try:
+            conn.login(str(user),str(pswd))
+            change_text(root,shw,"Logging In....","Successfully Logged In ","#00cccc","#66cc00",1)
+            if log_type==0:
+               code4=random.randint(1000,9999)
+               print code4
+               code_handling(code4,0,user,pswd,ser)
+            message_box(root,user)
+        except:
+            change_text(root,shw,"Login Failed.","Make Sure Username and Password is Correct","red","red",1)
+            change_text(root,shw,"Make Sure Username and Password is Correct","Enable Less Secure Login On Your Account","red",fclr,2)
+            change_text(root,shw,"Enable Less Secure Login On Your Account",ftext,"red",fclr,2)
     except:
-            flag=1
-            change_text("Cant Connect To Server.Please Try Again",ftext,"red",fclr,3)
-    try:
-        conn.login(str(user),str(pswd))
-        change_text("Logging In....","Successfully Logged In ","#00cccc","#66cc00",2)
-        k=1
-    except:
-        if flag==0:
-            change_text("Login Failed.","Make Sure Username and Password is Correct","red","red",3)
-            root.update()
-            change_text("Enable Less Secure Login On Your Account",ftext,"red",fclr,3)
-    if k==1:
-        if log_type==0:
-           code4=random.randint(1000,9999)
-           print code4
-           code_handling(code4,0,user,pswd)
-        message_box(user)
+            change_text(root,shw,"No Internet Connection.Please Try Again",ftext,"red",fclr,2)
+
+
 
 
 def encrypt(use):
@@ -83,21 +85,26 @@ def decrypt(use):
     return str(use)
 
 def code_handling(code4,z,*args):
+    print "exe"
     global ser
     p=os.path.dirname(iz.stack()[0][1])
-    if not os.path.exists(p+r'\db'):
-            fw=open(p+r'\db','w')
+    if not os.path.exists(p+r'/db'):
+            fw=open(p+r'/db','w')
             fw.close()
-    fw=open(p+r'\db','r')
+    fw=open(p+r'/db','r')
     re=fw.read()
     fw.close()
     if(z==0):
+        print "exe"
         user = args[0]
         pswd = args[1]
+        ser = args[2]
+        print user,pswd
         if re.find(encrypt(user))==-1 and re.find(encrypt(pswd))==-1:
+            print "exe1"
             while(str(code4) in re):
                 code4=random.randint(1000,999)
-            fw=open(p+r'\db','a')
+            fw=open(p+r'/db','a')
             fw.write(str(ser)+str(code4)+str(encrypt(user))+'x'+str(encrypt(pswd))+'\n')
             fw.close()
             conn.sendmail(str(user),str(user),'Subject:Four Digit Code\n\nDear User\n\tYour Speed Code is :'+str(code4))
@@ -106,60 +113,48 @@ def code_handling(code4,z,*args):
             m=Label(z,text='Your Speed Code Is: '+str(code4))
             m.pack(padx=100)
     elif(z==1):
-            if(str(code4) in re):
+            if(re.find(str(code4))!=-1):
                 ser=re[re.find(str(code4))-1]
                 re=re[re.find(str(code4)):]
                 user=decrypt(re[re.find(str(code4))+4:re.find('x')])
                 pswd=decrypt(re[re.find('x')+1:re.find('\n')])
                 return user ,pswd,ser
             else:
-                change_text("Code Not Found",ftext,"red",fclr,2)
                 return 'false','false','false'
 
-def validation():
-    global ser,log_type
-    if log_type==1:
+
+
+def codevalidate(root,shw,code4):
         try:
-            code4=int(Entry_code.get())
+            code4=int(code4)
         except:
-            change_text("Enter Valid Number",ftext,"red",fclr,2)
+            change_text(root,shw,"Enter Valid Number",ftext,"red",fclr,2)
         if code4 < 1000 or code4/10000 >0 :
-            change_text("Enter 4 Digit Code",ftext,"red",fclr,2)
+            change_text(root,shw,"Enter 4 Digit Code",ftext,"red",fclr,2)
         else:
             user,pswd,ser=code_handling(code4,1)
-            print user,pswd,ser
-            ser=int(ser)
-            if(user != 'false'):
-                print ser
-                if(ser==1):
-                    cont_server("smtp.gmail.com",user,pswd)
-                elif(ser==2):
-                    print "sdfd"
-                    cont_server("smtp.mail.yahoo.com",user,pswd)
-                elif(ser==3):
-                    cont_server("smtp-mail.outlook.com",user,pswd)
-    elif log_type==0:
+            if(user == 'false'):
+                change_text(root,shw,"Code Not Found",ftext,"red",fclr,2)
+            else:
+                ser=int(ser)
+                cont_server(root,shw,user,pswd,ser)
 
-        user=Entry_username.get()
-        pswd=Entry_password.get()
+
+def validation(root,shw,user,pswd,var):
         ser=var.get()
         if ser==0:
-            change_text("Select Server",ftext,"red","#454545",2)
+            change_text(root,shw,"Select Server",ftext,"red","#454545",1)
         elif not user:
-            blink(Entry_username,"#DFD8DC","red",.2)
+            change_text(root,shw,"Enter Username",ftext,"red","#454545",1)
         elif not pswd:
-            blink(Entry_password,"#DFD8DC","red",.2)
-        elif user.find("@gmail.com")==-1 and user.find("@yahoo.com")==-1 and user.find("@outlook.com")==-1:
-            change_text("Enter Valid Email Addresss",ftext,"red",fclr,2)
+            change_text(root,shw,"Enter Password",ftext,"red","#454545",1)
+        elif user.find("@gmail.com")==-1 and user.find("@yahoo.com")==-1 and user.find("@hotmail.com")==-1:
+            change_text(root,shw,"Enter Valid Email Addresss",ftext,"red",fclr,1)
         elif ser == 1 and user.find("@gmail.com") == -1 or ser==2 and user.find("@yahoo.com") == -1 or ser ==3 and user.find("@outlook.com") == -1 :
-            change_text("Incorrect Server Selected",ftext,"red",fclr,2)
+            change_text(root,shw,"Incorrect Server Selected",ftext,"red",fclr,1)
         else:
-            if(ser==1):
-                cont_server("smtp.gmail.com",user,pswd)
-            elif(ser==2):
-                cont_server("smtp.mail.yahoo.com",user,pswd)
-            elif(ser==3):
-                cont_server("smtp-mail.outlook.com",user,pswd)
+            cont_server(root,shw,user,pswd,ser)
+
 
 def takedet(user):
         mess = "Subject:" + sub_ent.get("1.0","end-1c") + "\n\n" + mess_ent.get("1.0","end-1c")
@@ -169,12 +164,11 @@ def takedet(user):
         except:
             pass
 
-def message_box(user):
+def message_box(root,user):
     root.destroy()
     master=Tk()
     master.wm_title("Send Message")
     master.configure(background="#DFD8DC")
-    animate(1,205,4,1.65,.005,master)
     #global to_ent,sub_ent,mess_ent
     to=Label(master,text="To:",font="Tahoma 12 bold",bg="#DFD8DC",fg="#454545")
     to.grid(row=0,column=0,padx=(10,0),pady=(5,20))
@@ -198,36 +192,20 @@ def message_box(user):
 
     master.mainloop()
 
-def dig_log():
+def dig_log(root):
     global log_type
-    global ftext
     if log_type ==0:
-        login_dig.config(text="Traditional LogIn")
-        username.grid_remove()
-        password.grid_remove()
-        Entry_username.grid_remove()
-        Entry_password.grid_remove()
-        code.grid(row=2)
-        shw.config(text="Enter Speed Code")
-        Entry_code.grid(row=2,column=1,pady=5,padx=(10,100))
+        root.destroy()
         ftext="Enter Speed Code"
         log_type=1
-        root.geometry("676x180")
-        root.update()
+        codelogin()
+
 
     elif log_type==1:
-        login_dig.config(text="LogIn Via Four Digit Code")
-        username.grid(row=2)
-        password.grid(row=3)
-        shw.config(text="Enter Username and Password")
-        Entry_username.grid(row=2,column=1,pady=5,padx=(10,100))
-        Entry_password.grid(row=3,column=1,pady=5,padx=(10,100))
-        code.grid_remove()
-        Entry_code.grid_remove()
+        root.destroy()
         ftext="Enter Username And Password"
         log_type=0
-        root.geometry("676x220")
-        root.update()
+        flogin()
 
 
 mess=""
@@ -236,61 +214,87 @@ ftext="Enter Username And Password"
 
 
 fclr="#454545"
-root=Tk()
-#For Changing Title Bar
-root.wm_title("SIGN IN")
-root.configure(background="#DFD8DC")
-root.geometry("676x220")
-#animate(1,160,4,1,.005,root)
-var=IntVar()
+def flogin(*args):
+    try:
+        args[0].destroy()
+    except:
+        pass
+    root=Tk()
+    #For Changing Title Bar
+    root.wm_title("SIGN IN")
+    root.configure(background="#DFD8DC")
+    root.geometry("676x220")
+    #animate(1,160,4,1,.005,root)
+    var=IntVar()
 
-topframe=Frame(root)
-topframe.pack(side="top")
-topframe.configure(background="#DFD8DC")
-bottomframe=Frame(root)
-bottomframe.pack(side="bottom")
-sev_slet=Label(topframe,text="Select Server: ",font="Tahoma 12 bold",bg="#DFD8DC",fg="#454545")
-sev_slet.pack(side=LEFT)
+    topframe=Frame(root)
+    topframe.pack(side="top")
+    topframe.configure(background="#DFD8DC")
+    bottomframe=Frame(root)
+    bottomframe.pack(side="bottom")
+    sev_slet=Label(topframe,text="Select Server: ",font="Tahoma 12 bold",bg="#DFD8DC",fg="#454545")
+    sev_slet.pack(side=LEFT)
 
-grad=Radiobutton(topframe,text="Google",variable=var,value=1,relief="flat",font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC",width=10)
-grad.pack(side=LEFT,padx=10,pady=3)
+    grad=Radiobutton(topframe,text="Google",variable=var,value=1,relief="flat",font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC",width=10)
+    grad.pack(side=LEFT,padx=10,pady=3)
 
-yrad=Radiobutton(topframe,text="Yahoo",variable=var,value=2,font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC",width=10)
-yrad.pack(side=LEFT,padx=10,pady=3)
-
-
-orad=Radiobutton(topframe,text="Hotmail",variable=var,value=3,relief=FLAT,font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC",width=10)
-orad.pack(side=LEFT,padx=10,pady=3)
-
-
-#Creating Label For Username and Password
-bottomframe.configure(background="#DFD8DC")
-username=Label(bottomframe,text="Username",font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC")
-username.grid(row=2)
-password=Label(bottomframe,text="Password",font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC")
-password.grid(row=3)
-
-#Creating Entry Box For Username and Password
-Entry_username=Entry(bottomframe,width=35,fg="#454545",bg="#DFD8DC",font="Tahoma 12",insertbackground="#454545")
-Entry_username.grid(row=2,column=1,pady=5,padx=(10,100))
-
-Entry_password=Entry(bottomframe,show='*',width=35,fg="#454545",bg="#DFD8DC",font="Tahoma 12 ",insertbackground="#454545")
-Entry_password.grid(row=3,column=1,pady=5,padx=(10,100))
-
-code=Label(bottomframe,text="Four Digit Code :",font="Tahoma 12 ",fg="#454545",bg="#DFD8DC")
-#---code.grid(row=3)
-Entry_code=Entry(bottomframe,width=35,fg="#454545",bg="#DFD8DC",font="Tahoma 12 ",insertbackground="#454545")
-#--Entry_code.grid(row=2,column=1,pady=5,padx=(10,100))
-
-shw=Label(bottomframe,text="Enter Username and Password",font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC")
-shw.grid(row=1,columnspan=2)
+    yrad=Radiobutton(topframe,text="Yahoo",variable=var,value=2,font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC",width=10)
+    yrad.pack(side=LEFT,padx=10,pady=3)
 
 
-#Creating Log in Button
-login_But=Button(bottomframe,text="Log In",relief=GROOVE,width=10,command=validation,font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC")
-login_But.grid(row=4,columnspan=2)
+    orad=Radiobutton(topframe,text="Hotmail",variable=var,value=3,relief=FLAT,font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC",width=10)
+    orad.pack(side=LEFT,padx=10,pady=3)
 
-login_dig=Button(bottomframe,text="LogIn Via Four Digit Code",relief=GROOVE,width=30,command=dig_log,font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC")
-login_dig.grid(row=5,columnspan=3,pady=5)
 
-root.mainloop()
+    #Creating Label For Username and Password
+    bottomframe.configure(background="#DFD8DC")
+    username=Label(bottomframe,text="Username",font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC")
+    username.grid(row=2)
+    password=Label(bottomframe,text="Password",font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC")
+    password.grid(row=3)
+
+    #Creating Entry Box For Username and Password
+    Entry_username=Entry(bottomframe,width=35,fg="#454545",bg="#DFD8DC",font="Tahoma 12",insertbackground="#454545")
+    Entry_username.grid(row=2,column=1,pady=5,padx=(10,100))
+
+    Entry_password=Entry(bottomframe,show='*',width=35,fg="#454545",bg="#DFD8DC",font="Tahoma 12 ",insertbackground="#454545")
+    Entry_password.grid(row=3,column=1,pady=5,padx=(10,100))
+
+    code=Label(bottomframe,text="Four Digit Code :",font="Tahoma 12 ",fg="#454545",bg="#DFD8DC")
+    #---code.grid(row=3)
+    Entry_code=Entry(bottomframe,width=35,fg="#454545",bg="#DFD8DC",font="Tahoma 12 ",insertbackground="#454545")
+    #--Entry_code.grid(row=2,column=1,pady=5,padx=(10,100))
+
+    shw=Label(bottomframe,text="Enter Username and Password",font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC")
+    shw.grid(row=1,columnspan=2)
+
+
+    #Creating Log in Button
+    login_But=Button(bottomframe,text="Log In",relief=GROOVE,width=10,command=lambda: validation(root,shw,Entry_username.get(),Entry_password.get(),var),font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC")
+    login_But.grid(row=4,columnspan=2)
+
+    login_dig=Button(bottomframe,text="LogIn Via Four Digit Code",relief=GROOVE,width=30,command=lambda: dig_log(root),font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC")
+    login_dig.grid(row=5,columnspan=3,pady=5)
+
+    root.mainloop()
+
+def codelogin():
+        root=Tk()
+        #For Changing Title Bar
+        root.wm_title("SIGN IN")
+        root.configure(background="#DFD8DC")
+        #root.geometry("200x160")
+
+        shw=Label(root,text="Enter Four Digit Code",font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC")
+        shw.grid(row=0,column=2,pady=(10,2))
+
+        Entry_code=Entry(root,width=10,fg="#454545",bg="#DFD8DC",font="Tahoma 12 ",insertbackground="#454545")
+        Entry_code.grid(row=1,column=2,pady=(3,2))
+
+        login_But=Button(root,text="Log In",relief=GROOVE,width=8,command=lambda: codevalidate(root,shw,Entry_code.get()),font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC")
+        login_But.grid(row=3,column=2,pady=(3,2))
+
+        login_dig=Button(root,text="Switch To Normal Login",relief=GROOVE,width=25,command=lambda: dig_log(root),font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC")
+        login_dig.grid(row=4,column=2,pady=(3,10),padx=200)
+
+flogin()
