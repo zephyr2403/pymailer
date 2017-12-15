@@ -31,9 +31,9 @@ def code_handling(code4,z,*args):
             while(str(code4) in re):
                 code4=random.randint(1000,999)
             fw=open(p+r'/db','a')
-            fw.write(str(ser)+str(code4)+str(handler.encrypt(user))+'x'+str(handler.handler.encrypt(pswd))+'\n')
+            fw.write(str(ser)+str(code4)+str(handler.encrypt(user))+'x'+str(handler.encrypt(pswd))+'\n')
             fw.close()
-            conn.sendmail(str(user),str(user),'Subject:Four Digit Code\n\nDear User\n\tYour Speed Code is :'+str(code4))
+            mailer.CONNECTION().transfercode(code4)
             z=Tk()
             z.wm_title('Speed Code Details')
             m=Label(z,text='Your Speed Code Is: '+str(code4),font="Tahoma 12 bold",bg="#DFD8DC",fg="#454545")
@@ -67,19 +67,19 @@ def codevalidation(root,shw,code4):
             ser=int(ser)
             connectioncheck(root,shw,user,pswd,ser)
 
-def attvalidate(root,chg,path):
+def attvalidate(attcm,root,chg,path):
     global attfile
     if(not os.path.exists(path)):
         handler.change_text(root,chg,"Wrong Path","Select File","#e63900",handler.fclr,1.5)
     else:
         attfile=path
-
+        attcm.configure(text="Remove Attachment")
         root.destroy()
+
 def set_attachment(attcm):
     global attv
     if (attv==1) :
         attv=0
-        attcm.configure(text="Remove Attachment")
         root=Tk()
         root.wm_title("Select File")
         root.configure(background="#DFD8DC")
@@ -87,7 +87,7 @@ def set_attachment(attcm):
         cha_txt.grid(row=0,columnspan=2,padx=(10,5),pady=5)
         entry_fil=Entry(root,width=60,fg="#454545",bg="#DFD8DC",borderwidth=3,font="Tahoma 12")
         entry_fil.grid(row=1,padx=(10,10),pady=(5,20))
-        open_img=Button(root,text="Upload",relief=GROOVE,width=10,font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC",command=lambda: attvalidate(root,cha_txt,entry_fil.get())).grid(row=1,column=1,padx=(10,10),pady=(5,20))
+        open_img=Button(root,text="Upload",relief=GROOVE,width=10,font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC",command=lambda: attvalidate(attcm,root,cha_txt,entry_fil.get())).grid(row=1,column=1,padx=(10,10),pady=(5,20))
     else:
         global attfile
         attfile=""

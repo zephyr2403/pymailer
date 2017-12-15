@@ -18,13 +18,13 @@ class CONNECTION(object):
         else:
             CONNECTION.smtpname="smtp-mail.outlook.com"
         try:
-            #change_text(root,shw,"Connecting.","Connecting..","#00e6e6","#00e6e6",1)
+            change_text(root,shw,"Connecting.","Connecting..","#00e6e6","#00e6e6",1)
             conn=smtplib.SMTP(str(CONNECTION.smtpname),587)
-            #change_text(root,shw,"Connecting...","Connected","#00e6e6","#66cc00",1)
+            change_text(root,shw,"Connecting...","Connected","#00e6e6","#66cc00",1)
             conn.ehlo()
-            #change_text(root,shw,"Connected","Starting Encrption Before Logging in","#66cc00","#00e6e6",1)
+            change_text(root,shw,"Connected","Starting Encrption Before Logging in","#66cc00","#00e6e6",1)
             conn.starttls()
-            #change_text(root,shw,"Successfully Encrpted","Logging In..","#66cc00","#00e6e6",1)
+            change_text(root,shw,"Successfully Encrpted","Logging In..","#66cc00","#00e6e6",1)
             try:
                 CONNECTION.user=user
                 CONNECTION.pswd=pswd
@@ -47,7 +47,10 @@ class CONNECTION(object):
         conn.login(str(CONNECTION.user),str(CONNECTION.pswd))
         return conn
 
-
+    def transfercode(self,code4):
+        print "--"
+        conn.sendmail(str(CONNECTION.user),str(CONNECTION.user),'Subject:Four Digit Code\n\nDear User\n\tYour Speed Code is :'+str(code4))
+        print "--++"
 def mailsend(master,lab,user,reciv,sub,mes,*args):
         mess = MIMEMultipart()
         mess['From'] = user
@@ -66,7 +69,7 @@ def mailsend(master,lab,user,reciv,sub,mes,*args):
         mess=mess.as_string()
         try:
             conn.sendmail(str(user),str(reciv),str(mess))
-            change_text(master,lab,"Message Sent to a"+str(reciv),"Enter Your Message","green","#454545",2)
+            change_text(master,lab,"Message Sent to "+str(reciv),"Enter Your Message","green","#454545",2)
         except:
             change_text(master,lab,"Reconnecting..","Reconnecting...","green","green",1)
             conn=CONNECTION().reconnect()
