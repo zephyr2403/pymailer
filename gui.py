@@ -51,7 +51,7 @@ def connectioncheck(root,shw,user,pswd,ser):
     if(mailer.CONNECTION().cont_server(root,shw,user,pswd,ser)==1):
         if log_type==0:
            code4=random.randint(1000,9999)
-           code_handling(code4,0,CONNECTION.user,CONNECTION.pswd,ser)
+           code_handling(code4,0,user,pswd,ser)
         message_box(root,user)
 
 def validation(root,shw,user,pswd,var):
