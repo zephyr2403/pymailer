@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from Tkinter import *
-
 import inspect as iz
 import os
 import random
@@ -9,7 +8,8 @@ import mailer
 
 
 
-
+attfile=""
+attv=1
 
 
 
@@ -67,9 +67,39 @@ def codevalidation(root,shw,code4):
             ser=int(ser)
             connectioncheck(root,shw,user,pswd,ser)
 
+def attvalidate(root,chg,path):
+    global attfile
+    if(not os.path.exists(path)):
+        handler.change_text(root,chg,"Wrong Path","Select File","#e63900",handler.fclr,1.5)
+    else:
+        attfile=path
 
+        root.destroy()
+def set_attachment(attcm):
+    global attv
+    if (attv==1) :
+        attv=0
+        attcm.configure(text="Remove Attachment")
+        root=Tk()
+        root.wm_title("Select File")
+        root.configure(background="#DFD8DC")
+        cha_txt=Label(root,text='Path',fg="#454545",font="Tahoma 12 bold",bg="#DFD8DC")
+        cha_txt.grid(row=0,columnspan=2,padx=(10,5),pady=5)
+        entry_fil=Entry(root,width=60,fg="#454545",bg="#DFD8DC",borderwidth=3,font="Tahoma 12")
+        entry_fil.grid(row=1,padx=(10,10),pady=(5,20))
+        open_img=Button(root,text="Upload",relief=GROOVE,width=10,font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC",command=lambda: attvalidate(root,cha_txt,entry_fil.get())).grid(row=1,column=1,padx=(10,10),pady=(5,20))
+    else:
+        global attfile
+        attfile=""
+        attcm.configure(text="Add Attachment")
+        attv=1
 
 def message_box(root,user):
+
+    global attext,attfile
+    attext=StringVar()
+    attext.set("Add Attachment")
+    print attext.get()
     root.destroy()
     master=Tk()
     master.wm_title("Send Message")
@@ -93,11 +123,12 @@ def message_box(root,user):
     mess_ent=Text(master,width=66,height=11,font='Tahoma 12',bg="#DFD8DC",fg="#454545",insertbackground="#454545")
     mess_ent.grid(row=3,column=1,columnspan=3,padx=(0,40),pady=(5,20))
 
-    bsend=Button(master,text="Send Mail",relief="groove",command=lambda: mailer.mailsend(master,lab,user,to_ent.get(),sub_ent.get("1.0","end-1c"),mess_ent.get("1.0","end-1c")),font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC")
+    bsend=Button(master,text="Send Mail",relief="groove",command=lambda: mailer.mailsend(master,lab,user,to_ent.get(),sub_ent.get("1.0","end-1c"),mess_ent.get("1.0","end-1c"),attfile),font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC")
     bsend.grid(row=4,column=1,pady=(0,20))
 
-    #attcm=Button(master,text="Add Attachment",relief="groove",command=lambda: flogin(master),font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC")
-    #attcm.grid(row=4,column=2,pady=(0,20))
+    attcm=Button(master,text="Add Attachment",relief="groove",font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC")
+    attcm.config(command=lambda : set_attachment(attcm))
+    attcm.grid(row=4,column=2,pady=(0,20))
 
     lgout=Button(master,text="Logout",relief="groove",command=lambda: flogin(master),font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC")
     lgout.grid(row=4,column=3,pady=(0,20))
@@ -166,10 +197,7 @@ def flogin(*args):
     Entry_password=Entry(bottomframe,show='*',width=35,fg="#454545",bg="#DFD8DC",font="Tahoma 12 ",insertbackground="#454545")
     Entry_password.grid(row=3,column=1,pady=5,padx=(10,100))
 
-    code=Label(bottomframe,text="Four Digit Code :",font="Tahoma 12 ",fg="#454545",bg="#DFD8DC")
-    #---code.grid(row=3)
-    Entry_code=Entry(bottomframe,width=35,fg="#454545",bg="#DFD8DC",font="Tahoma 12 ",insertbackground="#454545")
-    #--Entry_code.grid(row=2,column=1,pady=5,padx=(10,100))
+
 
     shw=Label(bottomframe,text="Enter Username and Password",font="Tahoma 12 bold",fg="#454545",bg="#DFD8DC")
     shw.grid(row=1,columnspan=2)

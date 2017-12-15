@@ -1,4 +1,8 @@
 import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
 from handler import change_text,ftext,fclr
 class CONNECTION(object):
     smtpname=""
@@ -14,18 +18,18 @@ class CONNECTION(object):
         else:
             CONNECTION.smtpname="smtp-mail.outlook.com"
         try:
-            change_text(root,shw,"Connecting.","Connecting..","#00e6e6","#00e6e6",1)
+            #change_text(root,shw,"Connecting.","Connecting..","#00e6e6","#00e6e6",1)
             conn=smtplib.SMTP(str(CONNECTION.smtpname),587)
-            change_text(root,shw,"Connecting...","Connected","#00e6e6","#66cc00",1)
+            #change_text(root,shw,"Connecting...","Connected","#00e6e6","#66cc00",1)
             conn.ehlo()
-            change_text(root,shw,"Connected","Starting Encrption Before Logging in","#66cc00","#00e6e6",1)
+            #change_text(root,shw,"Connected","Starting Encrption Before Logging in","#66cc00","#00e6e6",1)
             conn.starttls()
-            change_text(root,shw,"Successfully Encrpted","Logging In..","#66cc00","#00e6e6",1)
+            #change_text(root,shw,"Successfully Encrpted","Logging In..","#66cc00","#00e6e6",1)
             try:
                 CONNECTION.user=user
                 CONNECTION.pswd=pswd
                 conn.login(str(CONNECTION.user),str(CONNECTION.pswd))
-                change_text(root,shw,"Logging In....","Successfully Logged In ","#00e6e6","#66cc00",1)
+                #change_text(root,shw,"Logging In....","Successfully Logged In ","#00e6e6","#66cc00",1)
                 return 1
             except:
                 change_text(root,shw,"Login Failed.","Make Sure Username and Password is Correct","#e63900","#e63900",1)
@@ -44,8 +48,22 @@ class CONNECTION(object):
         return conn
 
 
-def mailsend(master,lab,user,reciv,sub,mes):
-        mess = "Subject:" + sub + "\n\n" + mes
+def mailsend(master,lab,user,reciv,sub,mes,*args):
+        mess = MIMEMultipart()
+        mess['From'] = user
+        mess['To'] = reciv
+        mess['Subject']=sub
+        mess.attach(MIMEText(mes,'plain'))
+
+        if(args[0] is not ""):
+            filename=args[0]
+            attach=open(filename,'rb')
+            part=MIMEBase('application','octet-stream')
+            part.set_payload((attach).read())
+            encoders.encode_base64(part)
+            part.add_header('Content-Disposition',"attachment; filename= "+filename)
+            mess.attach(part)
+        mess=mess.as_string()
         try:
             conn.sendmail(str(user),str(reciv),str(mess))
             change_text(master,lab,"Message Sent to a"+str(reciv),"Enter Your Message","green","#454545",2)
