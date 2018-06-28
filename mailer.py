@@ -1,16 +1,22 @@
-import smtplib
+from libs import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
-from handler import change_text,ftext,fclr
+from handler import notify,threading,ftext,fclr,change_text
+import time 
+
+'''
+CLASS FOR HANDLING THE CONNECTION
+'''
 class CONNECTION(object):
     smtpname=""
     user=""
     pswd=""
     ser=""
+    conn=''
+    status=0
     def cont_server(self,root,shw,user,pswd,ser):
-        global conn
         if(ser==1):
             CONNECTION.smtpname="smtp.gmail.com"
         elif(ser==2):
@@ -18,39 +24,31 @@ class CONNECTION(object):
         else:
             CONNECTION.smtpname="smtp-mail.outlook.com"
         try:
-            change_text(root,shw,"Connecting.","Connecting..","#00e6e6","#00e6e6",1)
-            conn=smtplib.SMTP(str(CONNECTION.smtpname),587)
-            change_text(root,shw,"Connecting...","Connected","#00e6e6","#66cc00",1)
-            conn.ehlo()
-            change_text(root,shw,"Connected","Starting Encrption Before Logging in","#66cc00","#00e6e6",1)
-            conn.starttls()
-            change_text(root,shw,"Successfully Encrpted","Logging In..","#66cc00","#00e6e6",1)
+            notify(root,shw,"Connecting..",'green')
+            CONNECTION.conn=smtplib.SMTP(str(CONNECTION.smtpname),587)
+            notify(root,shw,"Connecting...",'green')
+            CONNECTION.conn.ehlo()
+            notify(root,shw,"Starting Encryption..",'green')
+            CONNECTION.conn.starttls()
+            notify(root,shw,"Logging in.",'green')
             try:
                 CONNECTION.user=user
                 CONNECTION.pswd=pswd
-                conn.login(str(CONNECTION.user),str(CONNECTION.pswd))
-                #change_text(root,shw,"Logging In....","Successfully Logged In ","#00e6e6","#66cc00",1)
-                return 1
+                CONNECTION.conn.login(str(CONNECTION.user),str(CONNECTION.pswd))
+                CONNECTION.status= 1
             except:
-                change_text(root,shw,"Login Failed.","Make Sure Username and Password is Correct","#e63900","#e63900",1)
-                change_text(root,shw,"Make Sure Username and Password is Correct","Enable Less Secure Login On Your Account","#e63900",fclr,2)
-                change_text(root,shw,"Enable Less Secure Login On Your Account",ftext,"#e63900",fclr,2)
-                return 0
+                change_text(root,shw,"Check Details And Enable Less Secure Login On Your Account","Enter Username and Password'","#e63900",fclr,2)
         except:
-                change_text(root,shw,"No Internet Connection.Please Try Again",ftext,"#e63900",fclr,2)
-                return 0
-
-    def reconnect(self):
-        conn = smtplib.SMTP(CONNECTION.smtpname,587)
-        conn.ehlo()
-        conn.starttls()
-        conn.login(str(CONNECTION.user),str(CONNECTION.pswd))
-        return conn
-
+                change_text(root,shw,"Connection Error.Please Try Again",ftext,"#e63900",fclr,2)
+    '''
+    MAILS FOUR DIGIT CODE TO THE USER
+    '''
     def transfercode(self,code4):
-        print "--"
-        conn.sendmail(str(CONNECTION.user),str(CONNECTION.user),'Subject:Four Digit Code\n\nDear User\n\tYour Speed Code is :'+str(code4))
-        print "--++"
+        CONNECTION.conn.sendmail(str(CONNECTION.user),str(CONNECTION.user),'Subject:Four Digit Code\n\nDear User,\n\nYour Speed Code is :'+str(code4)+'\nYou can use this code to Log in the application next time.\n\nC-mailer Bot')
+
+'''
+FUNCTION THAT BUILDS THE MAILS
+'''
 def mailsend(master,lab,user,reciv,sub,mes,*args):
         mess = MIMEMultipart()
         mess['From'] = user
@@ -58,7 +56,7 @@ def mailsend(master,lab,user,reciv,sub,mes,*args):
         mess['Subject']=sub
         mess.attach(MIMEText(mes,'plain'))
 
-        if(args[0] is not ""):
+        if(type(args[0]) is not tuple):
             filename=args[0]
             attach=open(filename,'rb')
             part=MIMEBase('application','octet-stream')
@@ -67,14 +65,16 @@ def mailsend(master,lab,user,reciv,sub,mes,*args):
             part.add_header('Content-Disposition',"attachment; filename= "+filename)
             mess.attach(part)
         mess=mess.as_string()
-        try:
-            conn.sendmail(str(user),str(reciv),str(mess))
-            change_text(master,lab,"Message Sent to "+str(reciv),"Enter Your Message","green","#454545",2)
-        except:
-            change_text(master,lab,"Reconnecting..","Reconnecting...","green","green",1)
-            conn=CONNECTION().reconnect()
-            try:
-                conn.sendmail(str(user),str(reciv),str(mess))
-                change_text(master,lab,"Message Sent to "+str(reciv),"Enter Your Message","green","#454545",2)
-            except:
-                change_text(master,lab,"Message Not Sent","Enter Your Message","#e63900","#454545",2)
+        t3 = threading.Thread(target=sender,args=(master,lab,str(user),str(reciv),str(mess)))
+        t3.start()
+'''
+FUNCTION THAT SENDS THE MAILS
+'''
+def sender(master,lab,user,reciv,mess):
+    try:
+        notify(master,lab,"Sending ...","Green")
+        CONNECTION.conn.sendmail(user,reciv,mess)
+        change_text(master,lab,"Message Sent to "+str(reciv),"Enter Your Message","green","#454545",2)
+    except:
+        change_text(master,lab,"Error Occured !! Message Not Sent","Enter Your Message","#e63900","#454545",2)
+
