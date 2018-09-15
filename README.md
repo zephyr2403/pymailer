@@ -1,5 +1,11 @@
 ## ABOUT
-pymailer provides Unified Mailing Platform for Gmail, Yahoo and Hotmail
+**pymailer** provides **Unified Mailing Platform** for *Gmail*, *Yahoo* and *Hotmail*.
+#### Screenshots
+* **Login Screen**  
+<img src="/screenshot/login.png" alt="loading screenshot" style=""/> 
+
+* **Main Screen**   
+<img src="/screenshot/message.png" alt="loading screenshot" style=""/>    
 
 ## FEATURES:  
 
