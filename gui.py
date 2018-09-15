@@ -74,7 +74,11 @@ FUNCTION ALLOWS TO ADD ATTACHMENT
 def set_attachment(attbtn):
     global attfile
     if type(attfile) == tuple:
-        attfile = tkFileDialog.askopenfilename(title="Select File")
+	try:
+        	attfile = tkFileDialog.askopenfilename(title="Select File")
+	except:
+		pass
+		
         if type(attfile) == str:
             attbtn.config(text='Remove Attachment')
 
